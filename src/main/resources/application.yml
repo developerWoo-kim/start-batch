@@ -1,0 +1,14 @@
+spring:
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/toydb?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
+    username: gwkim
+    password: 2291
+
+
