@@ -20,5 +20,5 @@ public class MemberConnectHist {
     private Long connectId;
     private String connectType;
     private long memberId;
-    private LocalDateTime connectDate;
+    private LocalDateTime connectDt;
 }

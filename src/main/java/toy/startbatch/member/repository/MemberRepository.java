@@ -16,7 +16,7 @@ public interface MemberRepository {
 
     /**
      * 회원 이름으로 조회
-     * @param memberName
+     * @param name
      * @return
      */
     public List<Member> findByName(String name);

@@ -14,6 +14,7 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +40,7 @@ public class BatchConfig {
      * @throws Exception
      */
     @Bean
+    @Qualifier("exampleJob")
     public Job exampleJob() throws Exception {
         return jobBuilderFactory.get("exampleJob")
                 .start(exampleStep())
