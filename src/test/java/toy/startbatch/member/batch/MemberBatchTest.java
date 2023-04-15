@@ -1,40 +1,65 @@
 package toy.startbatch.member.batch;
 
-import org.assertj.core.api.Assertions;
+import com.querydsl.core.types.Projections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.test.JobLauncherTestUtils;
+import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
+import toy.startbatch.alarm.domain.AlarmSendHist;
+import toy.startbatch.alarm.repository.AlarmRepository;
+import toy.startbatch.batch.member.MemberBatchConfig;
 import toy.startbatch.batch.reader.QuerydslPagingItemReader;
 import toy.startbatch.member.domain.Member;
 import toy.startbatch.member.domain.MemberConnectHist;
 import toy.startbatch.member.domain.QMember;
-import toy.startbatch.member.domain.QMemberConnectHist;
 import toy.startbatch.member.repository.MemberRepository;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static toy.startbatch.member.domain.QMemberConnectHist.memberConnectHist;
 
 @SpringBootTest
+@SpringBatchTest
 @Transactional
-public class MemberBatchTest {
+public class MemberBatchTest{
+    private JobLauncherTestUtils jobLauncherTestUtils;
     @Autowired
     private EntityManagerFactory emf;
     @Autowired
     private MemberRepository memberRepository;
+    @Autowired
+    private AlarmRepository alarmRepository;
 
     @Test
     @DisplayName("의존성 주입 테스트")
     public void diTest() {
         List<Member> member = memberRepository.findByName("닉네임1");
         assertThat(member.size()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("접속 이력 조회")
+    public void findHist() {
+        MemberConnectHist memberConnectHist = memberRepository.findOneMemberConnectHist(100001L);
+
+        System.out.println("connectId = " + memberConnectHist.getConnectId());
+        assertThat(memberConnectHist.getMemberId()).isEqualTo(100001L);
     }
 
     @Test
@@ -87,13 +112,41 @@ public class MemberBatchTest {
 
         QuerydslPagingItemReader<MemberConnectHist> reader = new QuerydslPagingItemReader<>(emf, pageSize,
                 jpaQueryFactory -> jpaQueryFactory
-                        .selectFrom(memberConnectHist)
+                        .select(
+                                Projections.fields(MemberConnectHist.class,
+                                        memberConnectHist.memberId,
+                                        memberConnectHist.connectDt.max().as("connectDt")
+                                )
+                        )
+                        .from(memberConnectHist)
                         .groupBy(memberConnectHist.memberId)
-                        .having(memberConnectHist.connectDt.max().goe(beforeDate.atStartOfDay())));
+                        .having(memberConnectHist.connectDt.max().loe(beforeDate.atStartOfDay())));
         reader.open(new ExecutionContext());
 
-        MemberConnectHist memberConnectHist1 = reader.read();
-
+        MemberConnectHist memberConnectHist1 = memberConnectHist1 = reader.read();
+//        for(int i=0; i < 100; i++) {
+//            if(i == 99) {
+//                memberConnectHist1 = reader.read();
+//            } else {
+//                reader.read();
+//            }
+//        }
         System.out.println(memberConnectHist1.getMemberId());
+    }
+
+    @Test
+    @DisplayName("휴면전환 대상 회원(11개월 미접속자)을 조회하여 알림톡을 발송하고 이력을 쌓는 배치 테스트")
+    public void 알림톡을_발송하고_이력을_쌓는다() throws Exception{
+        LocalDate txDate = LocalDate.of(2023,04,12);
+
+        JobParameters jobParameters = new JobParametersBuilder(jobLauncherTestUtils.getUniqueJobParameters())
+                .addString("txDate", txDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                .toJobParameters();
+
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
+
+        assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
+        List<AlarmSendHist> alarmSendHistList = alarmRepository.findAll();
+        assertThat(alarmSendHistList.size()).isEqualTo(999);
     }
 }
