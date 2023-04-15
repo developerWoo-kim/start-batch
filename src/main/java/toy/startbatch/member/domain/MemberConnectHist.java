@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Getter @Setter
 @NoArgsConstructor
-@Entity
+@Entity(name = "MEMBER_CONNECT_HIST")
 public class MemberConnectHist {
 
     @Id

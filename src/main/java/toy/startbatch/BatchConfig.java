@@ -5,10 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.JobScope;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.configuration.annotation.*;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
@@ -16,6 +13,7 @@ import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import toy.startbatch.domain.Market;
@@ -26,6 +24,7 @@ import java.util.Map;
 
 @Slf4j
 @Configuration
+@ConditionalOnProperty(name = "spring.batch.job.names", havingValue = "exampleJob")
 @RequiredArgsConstructor
 public class BatchConfig {
 
@@ -40,7 +39,6 @@ public class BatchConfig {
      * @throws Exception
      */
     @Bean
-    @Qualifier("exampleJob")
     public Job exampleJob() throws Exception {
         return jobBuilderFactory.get("exampleJob")
                 .start(exampleStep())
@@ -52,7 +50,7 @@ public class BatchConfig {
      * @return
      */
     @Bean
-    @JobScope
+//    @JobScope
     public Step exampleStep() {
         return stepBuilderFactory.get("exampleStep")
                 .<Market, Market> chunk(10) // Chuck 사이즈는 한번에 처리될 트랜잭선 단위
@@ -63,7 +61,7 @@ public class BatchConfig {
     }
 
     @Bean
-    @StepScope
+//    @StepScope
     public JpaPagingItemReader<Market> reader(@Value("#{jobParameters[requestDate]}") String requestDate) {
         log.info("==> reader value : " + requestDate);
 

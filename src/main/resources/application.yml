@@ -1,7 +1,14 @@
 spring:
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
   batch:
     job:
-      enabled: false
+      enabled: true
+      names: ${job.name:NONE} # argument로 전달하는 job 수행
     jdbc:
       initialize-schema: always
 
@@ -10,5 +17,9 @@ spring:
     url: jdbc:mysql://localhost:3306/toydb?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
     username: gwkim
     password: 2291
+
+  main:
+    allow-bean-definition-overriding: true
+
 
 

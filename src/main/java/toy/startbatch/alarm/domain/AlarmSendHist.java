@@ -2,7 +2,6 @@ package toy.startbatch.alarm.domain;
 
 
 import lombok.*;
-import toy.startbatch.member.domain.MemberConnectHist;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -31,4 +30,6 @@ public class AlarmSendHist {
         this.successAt = successAt;
         this.memberId = memberId;
     }
+
+
 }

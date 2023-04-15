@@ -1,5 +1,6 @@
 package toy.startbatch.member.domain;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
