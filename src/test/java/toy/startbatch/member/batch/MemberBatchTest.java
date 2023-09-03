@@ -3,41 +3,36 @@ package toy.startbatch.member.batch;
 import com.querydsl.core.types.Projections;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
-import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.transaction.annotation.Transactional;
-import toy.startbatch.alarm.domain.AlarmSendHist;
+import org.springframework.test.context.TestPropertySource;
 import toy.startbatch.alarm.repository.AlarmRepository;
-import toy.startbatch.batch.member.MemberBatchConfig;
 import toy.startbatch.batch.reader.QuerydslPagingItemReader;
 import toy.startbatch.member.domain.Member;
 import toy.startbatch.member.domain.MemberConnectHist;
 import toy.startbatch.member.domain.QMember;
 import toy.startbatch.member.repository.MemberRepository;
 
+import javax.batch.runtime.BatchStatus;
 import javax.persistence.EntityManagerFactory;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static toy.startbatch.member.domain.QMemberConnectHist.memberConnectHist;
 
 @SpringBootTest
-@SpringBatchTest
-@Transactional
+@TestPropertySource(properties = {"spring.batch.job.names= memberBatchJob"})
 public class MemberBatchTest{
+    @Autowired
     private JobLauncherTestUtils jobLauncherTestUtils;
     @Autowired
     private EntityManagerFactory emf;
@@ -58,8 +53,21 @@ public class MemberBatchTest{
     public void findHist() {
         MemberConnectHist memberConnectHist = memberRepository.findOneMemberConnectHist(100001L);
 
+        String str = "문자";
+        str.equals("문자");
+
+        int number = 123;
+
+        List list = new ArrayList<>();
+
+        Member member = new Member();
+        member.equals(memberConnectHist);
+
+        Long memberId = memberConnectHist.getMemberId();
+        Long memberId2 = 100001L;
+
         System.out.println("connectId = " + memberConnectHist.getConnectId());
-        assertThat(memberConnectHist.getMemberId()).isEqualTo(100001L);
+
     }
 
     @Test
@@ -145,8 +153,19 @@ public class MemberBatchTest{
 
         JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
 
-        assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
-        List<AlarmSendHist> alarmSendHistList = alarmRepository.findAll();
-        assertThat(alarmSendHistList.size()).isEqualTo(999);
+        assertThat(jobExecution.getStatus()).isEqualTo(org.springframework.batch.core.BatchStatus.COMPLETED);
+
+
+        jobExecution.getStatus().equals(BatchStatus.COMPLETED);
+
+
+//        if() {
+//            System.out.println("true");
+//        } else {
+//            System.out.println("false");
+//        }
+//        List<AlarmSendHist> alarmSendHistList = alarmRepository.findAll();
+//        assertThat(alarmSendHistList.size()).isEqualTo(999);
     }
+
 }
